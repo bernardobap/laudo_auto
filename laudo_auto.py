@@ -74,12 +74,12 @@ class Repercussao(Enum):
 
 def frase_laudo(arteria, importancia, placa, local, repercussao):
 
-    # Definição dos ramos principais. Diferentemente dos subramos (DG, MG, DP, VP)
+    # Definição dos ramos principais. 
+    # Diferentemente dos subramos (DG, MG, DP, VP)
     # os ramos principais não deverão possuir o campo importância
     ramos_principais = (Arteria.TCE.value, Arteria.ADA.value, Arteria.ACX.value, Arteria.ACD.value)
     
     arteria = arteria.value
-    importancia = importancia.value
     repercussao = repercussao.value
     placa = placa.value
     local = local.value
@@ -88,7 +88,7 @@ def frase_laudo(arteria, importancia, placa, local, repercussao):
     if arteria in ramos_principais:
         importancia = Importancia.SEM.value
     else:
-        if importancia == Importancia.SEM.value:
+        if importancia == Importancia.SEM:
             raise Exception('Insira a importância do subramo coronariano!')
         else:
             importancia = importancia.value
@@ -97,6 +97,10 @@ def frase_laudo(arteria, importancia, placa, local, repercussao):
     if placa != Placa.SEM.value and repercussao == Repercussao.SEM.value:
         raise Exception('Se tem placa deve ter alguma redução luminal!')
 
+    # Se tem placa tem que ter a localização
+    if placa != Placa.SEM.value and local == Local.SEM.value:
+        raise Exception('Se tem placa deve ter a localização!')
+    
     # Concatenar a frase
     if arteria in ramos_principais:
         if (importancia, placa, local, repercussao) == (
