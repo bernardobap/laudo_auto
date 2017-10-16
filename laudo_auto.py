@@ -90,8 +90,6 @@ def frase_laudo(arteria, importancia, placa, local, repercussao):
     local = local.value
     repercussao = repercussao.value
     
-    ramos_principais = (Arteria.TCE.value, Arteria.ADA.value, Arteria.ACX.value, Arteria.ACD.value)
-    
     if arteria in ramos_principais:
         if (importancia, placa, local, repercussao) == (
             Importancia.SEM.value, Placa.SEM.value, Local.SEM.value, Repercussao.SEM.value):
