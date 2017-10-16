@@ -81,7 +81,7 @@ def frase_laudo(arteria, importancia, placa, local, repercussao):
     if arteria in ramos_principais:
         importancia = Importancia.SEM.value
     else:
-        if importancia == Importancia.SEM.value:
+        if importancia == Importancia.SEM:
             raise Exception('Insira a importância do subramo coronariano!')
         else:
             importancia = importancia.value
