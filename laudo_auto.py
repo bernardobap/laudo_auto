@@ -77,7 +77,7 @@ def frase_laudo(arteria, importancia, placa, local, repercussao):
     # Definição dos ramos principais. 
     # Diferentemente dos subramos (DG, MG, DP, VP)
     # os ramos principais não deverão possuir o campo importância
-    ramos_principais = (Arteria.TCE.value, Arteria.ADA.value, Arteria.ACX.value, Arteria.ACD.value)
+    ramos_principais = (Arteria.TCE, Arteria.ADA, Arteria.ACX, Arteria.ACD)
     
     arteria = arteria.value
     repercussao = repercussao.value
@@ -86,20 +86,19 @@ def frase_laudo(arteria, importancia, placa, local, repercussao):
 
     # Se é um ramo principal a importância não é necessária
     if arteria in ramos_principais:
-        importancia = Importancia.SEM.value
+        importancia = Importancia.SEM
+    elif importancia == Importancia.SEM:
+        raise Exception('Insira a importância do subramo coronariano!')
     else:
-        if importancia == Importancia.SEM:
-            raise Exception('Insira a importância do subramo coronariano!')
-        else:
-            importancia = importancia.value
+        importancia = importancia
 
     # Se tem placa tem que ter redução luminal
-    if placa != Placa.SEM.value and repercussao == Repercussao.SEM.value:
-        raise Exception('Se tem placa deve ter alguma redução luminal!')
-
-    # Se tem placa tem que ter a localização
-    if placa != Placa.SEM.value and local == Local.SEM.value:
-        raise Exception('Se tem placa deve ter a localização!')
+    if placa != Placa.SEM and (repercussao == Repercussao.SEM or local == Local.SEM.value):
+        raise Exception('Se tem placa é preciso localizar e determinar a redução luminal!')
+    else:
+        
+  
+        
     
     # Concatenar a frase
     if arteria in ramos_principais:
