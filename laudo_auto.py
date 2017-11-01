@@ -82,9 +82,6 @@ class PlacaError(ValueError):
     pass
 
 
-frase = ''
-
-
 def frase_laudo(arteria, importancia, placa, local, repercussao):
     # Definição dos ramos principais.
     # Diferentemente dos subramos (DG, MG, DP, VP)
@@ -92,13 +89,13 @@ def frase_laudo(arteria, importancia, placa, local, repercussao):
     ramos_principais = (Arteria.TCE, Arteria.ADA, Arteria.ACX, Arteria.ACD)
 
     # Se é um ramo principal a importância não é necessária
-    if (arteria in ramos_principais) and importancia != Importancia.SEM:
+    if arteria in ramos_principais and importancia != Importancia.SEM:
         raise ImportanciaError('Não é preciso especificar a importância do ramo principal!')
-    if (arteria not in ramos_principais) and importancia == Importancia.SEM:
+    if arteria not in ramos_principais and importancia == Importancia.SEM:
         raise ImportanciaError('Insira a importância do subramo coronariano!')
 
     # Se tem placa tem que ter redução luminal e o inverso é valido
-    if placa != Placa.SEM and local == Local.SEM:
+    if placa != Placa.SEM and (local == Local.SEM or repercussao == Repercussao.SEM):
         raise PlacaError(
             'Se tem placa é preciso localizar e determinar a redução luminal!')
 
@@ -107,6 +104,7 @@ def frase_laudo(arteria, importancia, placa, local, repercussao):
             'Se não tem placa não é preciso localizar e/ou determinar a redução luminal!')
 
     # Concatenar a frase
+    frase = ''
     if arteria in ramos_principais:
         if (importancia, placa, local, repercussao) == (
                 Importancia.SEM, Placa.SEM, Local.SEM, Repercussao.SEM):
