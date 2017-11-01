@@ -1,11 +1,11 @@
 from enum import Enum
 
+
 class Arteria(Enum):
-    
     TCE = 'Tronco da Coronária Esquerda (TCE)'
-    
+
     RI = 'Ramo Intermédio (RI)'
-    
+
     ADA = 'Artéria Descendente Anterior (ADA)'
     DG = 'Ramo Diagonal (DG)'
     DG1 = 'Primeiro Ramo Diagonal (DG1)'
@@ -13,7 +13,7 @@ class Arteria(Enum):
     DG3 = 'Terceiro Ramo Diagonal (DG3)'
     DG4 = 'Quarto Ramo Diagonal (DG4)'
     DG5 = 'Quinto Ramo Diagonal (DG5)'
-    
+
     ACX = 'Artéria Circunflexa (ACX)'
     MG = 'Ramo Marginal Esquerdo (MG)'
     MG1 = 'Primeiro Ramo Marginal (MG1)'
@@ -40,29 +40,30 @@ class Arteria(Enum):
     VP1 = 'Primeiro Ramo Ventricular Posterior (VP1), proveniente da CD'
     VP2 = 'Segundo Ramo Ventricular Posterior (VP2), proveniente da CD'
 
-class Importancia(Enum):
 
+class Importancia(Enum):
     SEM = ''
     PI = 'pequena importância'
     MI = 'moderada importância'
     GI = 'grande importância'
 
-class Placa(Enum):
 
+class Placa(Enum):
     SEM = ''
     NC = 'placa não calcificada'
     PC = 'placa predominantemente calcificada'
     PNC = 'placa predominantemente não calcificada'
 
-class Local(Enum):
 
+class Local(Enum):
     SEM = ''
+    O = 'óstio'
     SP = 'segmento proximal'
     SM = 'segmento médio'
     SD = 'segmento distal'
 
-class Repercussao(Enum):
 
+class Repercussao(Enum):
     SEM = 'sem redução luminal'
     RLMIN = 'redução luminal mínima'
     RLD = 'redução luminal discreta'
@@ -72,47 +73,73 @@ class Repercussao(Enum):
     SUBOT = 'suboclusão ou oclusão'
     OT = 'oclusão'
 
-def frase_laudo(arteria, importancia, placa, local, repercussao):
 
-    # Definição dos ramos principais. 
+class ImportanciaError(ValueError):
+    pass
+
+
+class PlacaError(ValueError):
+    pass
+
+
+frase = ''
+
+
+def frase_laudo(arteria, importancia, placa, local, repercussao):
+    # Definição dos ramos principais.
     # Diferentemente dos subramos (DG, MG, DP, VP)
     # os ramos principais não deverão possuir o campo importância
     ramos_principais = (Arteria.TCE, Arteria.ADA, Arteria.ACX, Arteria.ACD)
-    
-    arteria = arteria.value
-    repercussao = repercussao.value
-    placa = placa.value
-    local = local.value
 
     # Se é um ramo principal a importância não é necessária
-    if arteria in ramos_principais:
-        importancia = Importancia.SEM
-    elif importancia == Importancia.SEM:
-        raise Exception('Insira a importância do subramo coronariano!')
-    else:
-        importancia = importancia
+    if (arteria in ramos_principais) and importancia != Importancia.SEM:
+        raise ImportanciaError('Não é preciso especificar a importância do ramo principal!')
+    if (arteria not in ramos_principais) and importancia == Importancia.SEM:
+        raise ImportanciaError('Insira a importância do subramo coronariano!')
 
-    # Se tem placa tem que ter redução luminal
-    if placa != Placa.SEM and (repercussao == Repercussao.SEM or local == Local.SEM.value):
-        raise Exception('Se tem placa é preciso localizar e determinar a redução luminal!')
-    else:
-        
-  
-        
-    
+    # Se tem placa tem que ter redução luminal e o inverso é valido
+    if placa != Placa.SEM and local == Local.SEM:
+        raise PlacaError(
+            'Se tem placa é preciso localizar e determinar a redução luminal!')
+
+    if placa == Placa.SEM and (local != Local.SEM or repercussao != Repercussao.SEM):
+        raise PlacaError(
+            'Se não tem placa não é preciso localizar e/ou determinar a redução luminal!')
+
     # Concatenar a frase
     if arteria in ramos_principais:
         if (importancia, placa, local, repercussao) == (
-            Importancia.SEM.value, Placa.SEM.value, Local.SEM.value, Repercussao.SEM.value):
-                frase_laudo = '{0} {1}.'.format(arteria, repercussao)
+                Importancia.SEM, Placa.SEM, Local.SEM, Repercussao.SEM):
+            frase = '{0.value} {1.value}.'.format(arteria, repercussao)
         else:
-            frase_laudo = '{0} com {1} no {2} determinando {3}.'.format(arteria, placa, local, repercussao)
-    
-    else:
-        if (placa, local, repercussao) == (Placa.SEM.value, Local.SEM.value, Repercussao.SEM.value):
-            frase_laudo = '{0} de {1} e {2}.'.format(arteria, importancia, repercussao)
-        else:
-            frase_laudo = '{0} de {1} e com {2} no {3} determinando {4}.'.format(
-                arteria, importancia, placa, local, repercussao)
+            frase = '{0.value} com {1.value} no {2.value} determinando {3.value}.'.format(
+                arteria, placa, local, repercussao)
 
-    return frase_laudo
+    else:
+        if (placa, local, repercussao) == (Placa.SEM, Local.SEM, Repercussao.SEM):
+            frase = '{0.value} de {1.value} e {2.value}.'.format(
+                arteria, importancia, repercussao)
+        else:
+            frase = '{0.value} de {1.value} e com {2.value} no {3.value} determinando {4.value}.'\
+                .format(arteria, importancia, placa, local, repercussao)
+
+    return frase
+
+
+assert frase_laudo(Arteria.TCE, Importancia.SEM, Placa.PC, Local.SM, Repercussao.RLD) == \
+       'Tronco da Coronária Esquerda (TCE) com placa predominantemente calcificada ' \
+       'no segmento médio determinando redução luminal discreta.'
+
+assert frase_laudo(Arteria.MG1, Importancia.MI, Placa.PNC, Local.SP, Repercussao.RLI) == \
+       'Primeiro Ramo Marginal (MG1) de moderada importância e com placa ' \
+       'predominantemente não calcificada no segmento proximal determinando redução luminal importante.'
+
+assert frase_laudo(Arteria.DG1, Importancia.MI, Placa.PC, Local.O, Repercussao.RLI) == \
+       'Primeiro Ramo Diagonal (DG1) de moderada importância e com placa predominantemente calcificada ' \
+       'no óstio determinando redução luminal importante.'
+
+assert frase_laudo(Arteria.ADA, Importancia.SEM, Placa.SEM, Local.SEM, Repercussao.SEM) == \
+       'Artéria Descendente Anterior (ADA) sem redução luminal.'
+
+assert frase_laudo(Arteria.DG1, Importancia.MI, Placa.SEM, Local.SEM, Repercussao.SEM) == \
+       'Primeiro Ramo Diagonal (DG1) de moderada importância e sem redução luminal.'
